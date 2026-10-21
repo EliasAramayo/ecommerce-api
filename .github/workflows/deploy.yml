@@ -30,7 +30,7 @@ jobs:
           docker build \
             -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
-            -f Dockerfile .
+            -f Backend/Dockerfile Backend
 
       - name: 4. Subir la imagen a Docker Hub
         if: github.event_name != 'pull_request'
