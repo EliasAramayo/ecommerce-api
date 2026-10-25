@@ -148,8 +148,11 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
-            var db = services.GetRequiredService<Dsw2025TpiContext>();
-            await db.Database.MigrateAsync();
+
+            // Aplicar las migraciones pendientes antes de inicializar roles y usuarios.
+            var dbContext = services.GetRequiredService<Dsw2025TpiContext>();
+            await dbContext.Database.MigrateAsync();
+
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
