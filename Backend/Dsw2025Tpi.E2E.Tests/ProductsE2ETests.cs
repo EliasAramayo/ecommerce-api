@@ -122,7 +122,7 @@ public class ProductsE2ETests
         Assert.Equal(product.name, actual.GetProperty("name").GetString());
         Assert.Equal(product.description, actual.GetProperty("description").GetString());
         Assert.Equal(product.currentUnitPrice, actual.GetProperty("currentUnitPrice").GetDecimal());
-        Assert.Equal(31, actual.GetProperty("stockQuantity").GetInt32());
+        Assert.Equal(product.stockQuantity, actual.GetProperty("stockQuantity").GetInt32());
         Assert.True(actual.GetProperty("isActive").GetBoolean());
     }
 }
