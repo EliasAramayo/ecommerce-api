@@ -12,33 +12,54 @@ env:
   IMAGE_NAME: ecommerce-api
 
 jobs:
-  build-and-deploy:
+  tests:
+    name: Ejecutar pruebas del TP4
     runs-on: ubuntu-latest
-
     steps:
-      - name: 1. Obtener el código
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Pruebas unitarias
+        run: dotnet test Backend/tests/ECommerce.UnitTests/ECommerce.UnitTests.csproj
+
+      - name: Pruebas de integración
+        run: dotnet test Backend/tests/ECommerce.IntegrationTests/ECommerce.IntegrationTests.csproj
+
+      - name: Pruebas E2E
+        run: dotnet test Backend/Dsw2025Tpi.E2E.Tests/Dsw2025Tpi.E2E.Tests.csproj
+
+  build-and-deploy:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener el código
         uses: actions/checkout@v4
 
-      - name: 2. Iniciar sesión en Docker Hub
+      - name: Construir la imagen Docker (.NET 8)
+        run: docker build -t "$IMAGE_NAME:$GITHUB_SHA" -f Backend/Dockerfile Backend
+
+      - name: Iniciar sesión en Docker Hub
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 3. Construir la imagen Docker (.NET 8)
-        run: |
-          docker build \
-            -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
-            -f Backend/Dockerfile Backend
-
-      - name: 4. Subir la imagen a Docker Hub
+      - name: Subir la imagen a Docker Hub
         if: github.event_name != 'pull_request'
         run: |
-          docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          repository="$DOCKERHUB_USERNAME/$IMAGE_NAME"
+          docker tag "$IMAGE_NAME:$GITHUB_SHA" "$repository:$GITHUB_SHA"
+          docker tag "$IMAGE_NAME:$GITHUB_SHA" "$repository:latest"
+          docker push "$repository:$GITHUB_SHA"
+          docker push "$repository:latest"
 
-      - name: 5. Desplegar el contenedor en Azure App Service
+      - name: Desplegar el contenedor en Azure App Service
         if: github.event_name != 'pull_request'
         uses: azure/webapps-deploy@v3
         with:
