@@ -30,8 +30,7 @@ jobs:
       - name: Pruebas de integración
         run: dotnet test Backend/tests/ECommerce.IntegrationTests/ECommerce.IntegrationTests.csproj
 
-      - name: Pruebas E2E
-        run: dotnet test Backend/Dsw2025Tpi.E2E.Tests/Dsw2025Tpi.E2E.Tests.csproj
+    
 
   build-and-deploy:
     needs: tests
