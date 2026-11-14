@@ -151,7 +151,14 @@ public class Program
 
             // Aplicar las migraciones pendientes antes de inicializar roles y usuarios.
             var dbContext = services.GetRequiredService<Dsw2025TpiContext>();
-            await dbContext.Database.MigrateAsync();
+            if (app.Environment.IsEnvironment("Testing"))
+            {
+                await dbContext.Database.EnsureCreatedAsync();
+            }
+            else
+            {
+                await dbContext.Database.MigrateAsync();
+            }
 
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
