@@ -93,8 +93,11 @@ public class Dsw2025TpiContext: IdentityDbContext
                  .HasPrecision(15, 2);
 
             order.Property(o => o.Date)
-                 .HasDefaultValueSql("GETDATE()")
-                 .IsRequired();
+     .HasDefaultValueSql(
+         Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite"
+             ? "CURRENT_TIMESTAMP"
+             : "GETDATE()")
+     .IsRequired();
 
             order.Property(o => o.Notes);
         });

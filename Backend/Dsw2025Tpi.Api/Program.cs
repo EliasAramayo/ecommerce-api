@@ -147,11 +147,26 @@ public class Program
         // ---------------------------------
         using (var scope = app.Services.CreateScope())
         {
+            
             var services = scope.ServiceProvider;
 
             // Aplicar las migraciones pendientes antes de inicializar roles y usuarios.
             var dbContext = services.GetRequiredService<Dsw2025TpiContext>();
-            await dbContext.Database.MigrateAsync();
+            if (app.Environment.IsEnvironment("Testing"))
+            {
+                if (dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.Sqlite")
+                {
+                    throw new InvalidOperationException(
+                        "The Testing environment requires the SQLite provider.");
+                }
+
+                await dbContext.Database.EnsureCreatedAsync();
+            }
+            else
+            {
+                await dbContext.Database.MigrateAsync();
+            }
+          
 
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
