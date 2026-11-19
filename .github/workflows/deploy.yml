@@ -25,14 +25,11 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: 3. Restaurar dependencias
-        run: dotnet restore Backend/Dsw2025Tpi.sln
+      - name: 3. Ejecutar pruebas unitarias
+        run: dotnet test Backend/tests/ECommerce.UnitTests/ECommerce.UnitTests.csproj --configuration Release --verbosity normal
 
-      - name: 4. Compilar la solución
-        run: dotnet build Backend/Dsw2025Tpi.sln --no-restore --configuration Release
-
-      - name: 5. Ejecutar pruebas automatizadas
-        run: dotnet test Backend/Dsw2025Tpi.sln --no-build --configuration Release --verbosity normal
+      - name: 4. Ejecutar pruebas de integración
+        run: dotnet test Backend/tests/ECommerce.IntegrationTests/ECommerce.IntegrationTests.csproj --configuration Release --verbosity normal
 
   build-and-deploy:
     name: Build Docker and Deploy to Azure
