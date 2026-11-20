@@ -72,7 +72,7 @@ namespace ECommerce.UnitTests
             Assert.NotNull(resultado);
             Assert.Equal(customerId, resultado.CustomerId);
             Assert.Equal(3000m, resultado.Total);        // 3 unidades * $1000 = $3000
-            Assert.Equal(999, product.StockQuantity);     // 10 iniciales - 3 compradas = 7
+            Assert.Equal(7, product.StockQuantity);     // 10 iniciales - 3 compradas = 7
                          
             // Verificamos que se persista el descuento de stock y la nueva orden
             repoMock.Verify(r => r.Update(It.Is<Product>(p => p.Id == productId && p.StockQuantity == 7)), Times.Once);
