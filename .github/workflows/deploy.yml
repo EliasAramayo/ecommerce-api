@@ -2,7 +2,7 @@ name: Build and Deploy to Azure App Service (Publish Profile)
 
 on:
   push:
-    branches: [development, main]
+    branches: [development, main, 'test/**']
   pull_request:
     branches: [development, main]
   workflow_dispatch:
@@ -12,7 +12,28 @@ env:
   IMAGE_NAME: ecommerce-api
 
 jobs:
+  test:
+    name: Run Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Obtener el código
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: 3. Ejecutar pruebas unitarias
+        run: dotnet test Backend/tests/ECommerce.UnitTests/ECommerce.UnitTests.csproj --configuration Release --verbosity normal
+
+      - name: 4. Ejecutar pruebas de integración
+        run: dotnet test Backend/tests/ECommerce.IntegrationTests/ECommerce.IntegrationTests.csproj --configuration Release --verbosity normal
+
   build-and-deploy:
+    name: Build Docker and Deploy to Azure
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -33,13 +54,13 @@ jobs:
             -f Backend/Dockerfile Backend
 
       - name: 4. Subir la imagen a Docker Hub
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development')
         run: |
           docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
       - name: 5. Desplegar el contenedor en Azure App Service
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development')
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.APP_SERVICE_NAME }}
